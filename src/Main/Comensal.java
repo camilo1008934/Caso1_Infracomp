@@ -11,7 +11,15 @@ public class Comensal {
 		this.nombre=pNombre;
 		this.platos=pPlatos;
 		tenedor = new Cubierto ("Tenedor");
-		tenedor = new Cubierto ("Cuchillo");
+		cuchillo = new Cubierto ("Cuchillo");
+	}
+	
+	public void comerPlato() {
+		
+	}
+	
+	public void cambiarCubiertos() {
+		
 	}
 
 }

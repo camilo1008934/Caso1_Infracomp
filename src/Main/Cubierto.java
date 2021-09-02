@@ -8,4 +8,12 @@ public class Cubierto {
 		this.tipo=pTipo;
 		sucio=false;
 	}
+	
+	public void ensuciarCubierto() {
+		sucio=true;
+	}
+	
+	public void limpiarCubierto() {
+		sucio=false;
+	}
 }
