@@ -9,6 +9,10 @@ public class Cubierto {
 		sucio=false;
 	}
 	
+	public String getTipo() {
+		return tipo;
+	}
+	
 	public void ensuciarCubierto() {
 		sucio=true;
 	}
