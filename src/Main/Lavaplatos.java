@@ -1,26 +1,38 @@
 package Main;
 import java.util.ArrayList;
 
-public class Lavaplatos {
+public class Lavaplatos extends Thread{
 	int sizeFregadero;
 	ArrayList<Cubierto> fregadero;
-	
-	
-	
-	
-	public Lavaplatos(int size) {
+	Mesa mesa;
+
+	public Lavaplatos(int size, Mesa pMesa) {
 		sizeFregadero = size;
+		mesa=pMesa;
 		fregadero=new ArrayList<Cubierto>();
 	}
 	
 	public void addFregadero (Cubierto aCubierto) {
-		
+		while (fregadero.size()+1>sizeFregadero) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		fregadero.add(aCubierto);		
 	}
 	
 	public void lavar() {
+		try {
+			sleep((long) Math.floor(Math.random()*(2000-1000+1)+1000));
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		mesa.addDisponible(fregadero.get(0));
+		fregadero.remove(0);
+		notifyAll();
 		
 	}
-	
-	
 	
 }
