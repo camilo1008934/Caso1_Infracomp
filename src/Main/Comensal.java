@@ -7,37 +7,98 @@ import java.io.FileReader;
 import java.io.IOException;
 
 
-public class Comensal {
-	String nombre;
+public class Comensal extends Thread {
+	int idComensal;
 	int platos;
 	
+	Mesa mesa;
+	Lavaplatos lavaplatos;
 	Cubierto tenedor;
 	Cubierto cuchillo;
 	
 	
 	
-	public Comensal (int pPlatos, String pNombre) {
-		nombre=pNombre;
+	public Comensal (int pPlatos, int pId, Mesa pMesa, Lavaplatos pLavaplatos) {
+		idComensal=pId;
 		platos=pPlatos;
-		tenedor = new Cubierto ("Tenedor");
-		cuchillo = new Cubierto ("Cuchillo");
+		mesa=pMesa;
+		lavaplatos=pLavaplatos;
+		tenedor = null;
+		cuchillo = null;
 	}
 	
 	public void comerPlato() {
-		
+		cogerCubiertos();
+		System.out.println("El comensal #"+idComensal +" esta comiendo el plado #"+platos);
+		try {
+			sleep((long) Math.floor(Math.random()*(5000-3000+1)+3000));
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		System.out.println("El comensal #"+idComensal +" se ha comido el plado #"+platos);
+		platos--;
+		dejarCubiertos();
+		System.out.println("El comensal #"+idComensal +" ha dejado los cubiertos en el fregadero");
+	}
+	
+	public void dejarCubiertos() {
+		lavaplatos.addFregadero(tenedor);
+		tenedor=null;
+		lavaplatos.addFregadero(cuchillo);
+		cuchillo=null;
+	}
+	
+	public void cogerCubiertos() {
+		while (tenedor==null || cuchillo==null) {
+			cogerTenedor();
+			cogerCuchillo();
+		}
 	}
 	
 	public void cogerTenedor() {
+		while (!mesa.estaDisponible("Tenedor")) {
+			if (cuchillo!=null) {
+				mesa.addDisponible(cuchillo);
+				cuchillo=null;
+				System.out.println("El comensal #"+idComensal +" ha dejado un cuchillo debido a que no estaba disponible un tenedor");
+			}
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		tenedor=mesa.cogerCubierto("Tenedor");
+		System.out.println("El comensal #"+idComensal +" ha cogido un tenedor");
 		
 	}
 	
 	public void cogerCuchillo() {
 		
+		while (!mesa.estaDisponible("Cuchillo")) {
+			if (tenedor!=null) {
+				mesa.addDisponible(tenedor);
+				tenedor=null;
+				System.out.println("El comensal #"+idComensal +" ha dejado un tenedor debido a que no estaba disponible un cuchillo");
+			}
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		cuchillo=mesa.cogerCubierto("Cuchillo");
+		System.out.println("El comensal #"+idComensal +" ha cogido un cuchillo");
+		
 	}
 	
 	
 	public static void main(String[] args) {
-		int numComensales, numTenedores, numCuchillos, numPlatos, tamFregadero;
+		int numComensales=-1, numTenedores=-1, numCuchillos=-1, numPlatos=-1, tamFregadero=-1;
 		
 		BufferedReader br = null;
 		try {

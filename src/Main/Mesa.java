@@ -17,7 +17,7 @@ public class Mesa {
 		return false;
 	}
 	
-	public Cubierto sacarDisponible(String tipo) {
+	public Cubierto cogerCubierto(String tipo) {
 		
 		return disponibles.get(0);
 	}
