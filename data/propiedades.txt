@@ -1,0 +1,5 @@
+numComensales=6
+numCubiertosT1=7
+numCubiertosT2=10
+numPlatos=8
+tamFregadero=5

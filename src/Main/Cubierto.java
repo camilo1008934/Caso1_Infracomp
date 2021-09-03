@@ -5,7 +5,7 @@ public class Cubierto {
 	boolean sucio;
 	
 	public Cubierto(String pTipo) {
-		this.tipo=pTipo;
+		tipo=pTipo;
 		sucio=false;
 	}
 	
