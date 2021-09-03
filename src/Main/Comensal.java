@@ -5,12 +5,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
 
 
 public class Comensal extends Thread {
 	int idComensal;
 	int platos;
+	int espera;
 	
+	private static CyclicBarrier barrera;
 	Mesa mesa;
 	Lavaplatos lavaplatos;
 	Cubierto tenedor;
@@ -21,6 +25,7 @@ public class Comensal extends Thread {
 	public Comensal (int pPlatos, int pId, Mesa pMesa, Lavaplatos pLavaplatos) {
 		idComensal=pId;
 		platos=pPlatos;
+		espera=pPlatos/2;
 		mesa=pMesa;
 		lavaplatos=pLavaplatos;
 		tenedor = null;
@@ -29,13 +34,15 @@ public class Comensal extends Thread {
 	
 	public void comerPlato() {
 		cogerCubiertos();
-		System.out.println("El comensal #"+idComensal +" esta comiendo el plado #"+platos);
+		System.out.println("El comensal #"+idComensal +" esta comiendo el plato #"+platos);
 		try {
 			sleep((long) Math.floor(Math.random()*(5000-3000+1)+3000));
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		System.out.println("El comensal #"+idComensal +" se ha comido el plado #"+platos);
+		System.out.println("El comensal #"+idComensal +" se ha comido el plato #"+platos);
+		
+		
 		platos--;
 		dejarCubiertos();
 		System.out.println("El comensal #"+idComensal +" ha dejado los cubiertos en el fregadero");
@@ -55,12 +62,13 @@ public class Comensal extends Thread {
 		}
 	}
 	
-	public void cogerTenedor() {
+	public synchronized void cogerTenedor() {
 		while (!mesa.estaDisponible("Tenedor")) {
 			if (cuchillo!=null) {
+				System.out.println("El comensal #"+idComensal +" ha dejado un cuchillo debido a que no estaba disponible un tenedor");
 				mesa.addDisponible(cuchillo);
 				cuchillo=null;
-				System.out.println("El comensal #"+idComensal +" ha dejado un cuchillo debido a que no estaba disponible un tenedor");
+				
 			}
 			try {
 				wait();
@@ -70,18 +78,19 @@ public class Comensal extends Thread {
 		}
 		
 		
-		tenedor=mesa.cogerCubierto("Tenedor");
 		System.out.println("El comensal #"+idComensal +" ha cogido un tenedor");
+		tenedor=mesa.cogerCubierto("Tenedor");
 		
 	}
 	
-	public void cogerCuchillo() {
+	public synchronized void cogerCuchillo() {
 		
 		while (!mesa.estaDisponible("Cuchillo")) {
 			if (tenedor!=null) {
+				System.out.println("El comensal #"+idComensal +" ha dejado un tenedor debido a que no estaba disponible un cuchillo");
 				mesa.addDisponible(tenedor);
 				tenedor=null;
-				System.out.println("El comensal #"+idComensal +" ha dejado un tenedor debido a que no estaba disponible un cuchillo");
+				
 			}
 			try {
 				wait();
@@ -90,10 +99,26 @@ public class Comensal extends Thread {
 			}
 		}
 		
-		
+		System.out.println("El comensal #"+idComensal +" ha cogido un cuchillo");		
 		cuchillo=mesa.cogerCubierto("Cuchillo");
-		System.out.println("El comensal #"+idComensal +" ha cogido un cuchillo");
 		
+		
+	}
+	
+	public void run() {
+		while (platos>0) {
+			if (platos==espera) {
+				System.out.println("Hilos esperando "+ (Comensal.barrera.getNumberWaiting()+1));
+				try {
+					Comensal.barrera.await();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				} catch (BrokenBarrierException e) {
+					e.printStackTrace();
+				}
+			}
+			comerPlato();
+		}
 	}
 	
 	
@@ -135,6 +160,15 @@ public class Comensal extends Thread {
 				e.printStackTrace();
 			}
 
+		}
+		barrera=new CyclicBarrier(numComensales-1);
+		
+		
+		Mesa ms = new Mesa(numTenedores, numCuchillos);		
+		Lavaplatos lp = new Lavaplatos(tamFregadero, ms);
+		lp.start();
+		for (int i=1; i<=numComensales; i++) {
+			new Comensal(numPlatos, i, ms, lp).start();
 		}
 		
 	}

@@ -12,7 +12,7 @@ public class Lavaplatos extends Thread{
 		fregadero=new ArrayList<Cubierto>();
 	}
 	
-	public void addFregadero (Cubierto aCubierto) {
+	public synchronized void addFregadero (Cubierto aCubierto) {
 		while (fregadero.size()+1>sizeFregadero) {
 			try {
 				wait();
@@ -21,9 +21,18 @@ public class Lavaplatos extends Thread{
 			}
 		}
 		fregadero.add(aCubierto);		
+		System.out.println("En el fregadero hay "+fregadero.size()+" cubiertos.");
+		notifyAll();
 	}
 	
-	public void lavar() {
+	public synchronized void lavar() {
+		if (fregadero.size()<=0) {
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 		try {
 			sleep((long) Math.floor(Math.random()*(2000-1000+1)+1000));
 		} catch (InterruptedException e) {
@@ -31,8 +40,16 @@ public class Lavaplatos extends Thread{
 		}
 		mesa.addDisponible(fregadero.get(0));
 		fregadero.remove(0);
+		System.out.println("Se ha lavado un cubierto, en el fregadero hay "+fregadero.size()+" cubiertos.");
 		notifyAll();
 		
+	}
+	
+	
+	public void run() {
+		while (true) {
+			lavar();
+		}
 	}
 	
 }
